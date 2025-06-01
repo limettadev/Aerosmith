@@ -41,7 +41,7 @@ tasks {
 
         from(project.rootDir.resolve("LICENSE.md")) {
             into("META-INF/license")
-            rename { "pandaspigot-LICENSE.md" }
+            rename { "aerosmith-LICENSE.md" }
         }
     }
 }

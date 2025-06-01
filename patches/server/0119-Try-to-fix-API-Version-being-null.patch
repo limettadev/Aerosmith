@@ -1,0 +1,45 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: minotaa <jpichardo369@gmail.com>
+Date: Sun, 1 Jun 2025 19:42:59 -0400
+Subject: [PATCH] Try to fix API Version being null
+
+
+diff --git a/build.gradle.kts b/build.gradle.kts
+index ff2e64d396f1a4946a076ef852bf4f65b802bfdb..8728b0eed6f5f72ded90a62bce36603b25fd1b93 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -102,7 +102,7 @@ tasks {
+         manifest {
+             val git = Git(rootProject.layout.projectDirectory)
+             val gitHash = git("rev-parse", "--short=7", "HEAD").getText().trim()
+-            val implementationVersion = System.getenv("GITHUB_RUN_NUMBER") ?: "000"
++            val implementationVersion = System.getenv("GITHUB_RUN_NUMBER") ?: "$gitHash"
+             val date = git("show", "-s", "--format=%ci", gitHash).getText().trim()
+             val gitBranch = git("rev-parse", "--abbrev-ref", "HEAD").getText().trim()
+             attributes(
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 65dd7b6d747ae84ec8a317f69163738f0bff2041..f069bb9903b7ab699b47d7a28cfd988c30778f78 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -127,7 +127,7 @@ import net.md_5.bungee.api.chat.BaseComponent;
+ 
+ public final class CraftServer implements Server {
+     private static final Player[] EMPTY_PLAYER_ARRAY = new Player[0];
+-    private final String serverName = "AeroSpigot"; // PandaSpigot
++    private final String serverName = "Aerosmith"; // PandaSpigot
+     private final String serverVersion;
+     private final String bukkitVersion = Versioning.getBukkitVersion();
+     private final Logger logger = Logger.getLogger("Minecraft");
+diff --git a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
+index da66025a18b23e249ce13a8b998d24b112cb969e..71e79cd71bb902f83e5f5ed670da2381510f005b 100644
+--- a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
++++ b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
+@@ -11,7 +11,7 @@ public final class Versioning {
+     public static String getBukkitVersion() {
+         String result = "Unknown-Version";
+ 
+-        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.hpfxd.pandaspigot/pandaspigot-api/pom.properties");
++        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/dev.limetta.aerosmith/aerosmith-api/pom.properties");
+         Properties properties = new Properties();
+ 
+         if (stream != null) {
