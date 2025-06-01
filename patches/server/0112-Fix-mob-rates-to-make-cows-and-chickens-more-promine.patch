@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: minotaa <jpichardo369@gmail.com>
+Date: Sun, 1 Jun 2025 09:25:34 -0400
+Subject: [PATCH] Fix mob rates to make cows and chickens more prominent
+
+
+diff --git a/src/main/java/net/minecraft/server/BiomeBase.java b/src/main/java/net/minecraft/server/BiomeBase.java
+index 28da1365a7e9d12288448d09e577520547bc7e89..36560bfa26735850ce4545e72d833380e5049378 100644
+--- a/src/main/java/net/minecraft/server/BiomeBase.java
++++ b/src/main/java/net/minecraft/server/BiomeBase.java
+@@ -118,10 +118,10 @@ public abstract class BiomeBase {
+         BiomeBase.biomes[i] = this;
+         this.as = this.a();
+         this.au.add(new BiomeMeta(EntitySheep.class, 12, 4, 4));
+-        this.au.add(new BiomeMeta(EntityRabbit.class, 10, 3, 3));
+-        this.au.add(new BiomeMeta(EntityPig.class, 10, 4, 4));
+-        this.au.add(new BiomeMeta(EntityChicken.class, 10, 4, 4));
+-        this.au.add(new BiomeMeta(EntityCow.class, 8, 4, 4));
++        //this.au.add(new BiomeMeta(EntityRabbit.class, 10, 3, 3)); // Disable natural rabbit spawning.
++        this.au.add(new BiomeMeta(EntityPig.class, 8, 4, 4)); // Default: 10
++        this.au.add(new BiomeMeta(EntityChicken.class, 16, 4, 4)); // Default: 10
++        this.au.add(new BiomeMeta(EntityCow.class, 14, 4, 4)); // Default: 8
+         this.at.add(new BiomeMeta(EntitySpider.class, 100, 4, 4));
+         this.at.add(new BiomeMeta(EntityZombie.class, 100, 4, 4));
+         this.at.add(new BiomeMeta(EntitySkeleton.class, 100, 4, 4));
