@@ -8,7 +8,7 @@ import java.util.Properties
 tasks {
     register<Jar>("paperclipJar") {
         outputs.upToDateWhen { false }
-        dependsOn("shadowJar", ":pandaspigot-server:remap")
+        dependsOn("shadowJar", ":aerosmith-server:remap")
 
         from(zipTree((tasks["shadowJar"] as Jar).archiveFile.get()))
 
@@ -25,8 +25,8 @@ tasks {
         }
 
         doFirst {
-            val inTask = project(":pandaspigot-server").tasks["remap"] as RemapTask
-            val diffFile = temporaryDir.resolve("pandaspigot.patch")
+            val inTask = project(":aerosmith-server").tasks["remap"] as RemapTask
+            val diffFile = temporaryDir.resolve("aerosmith.patch")
             val propertiesFile = temporaryDir.resolve("patch.properties")
 
             val vanillaJar = project.rootProject.layout.projectDirectory.file("base/mc-dev/1.8.8.jar").asFile
@@ -50,7 +50,7 @@ tasks {
             val properties = Properties()
             properties.setProperty("originalHash", vanillaHash.toHex())
             properties.setProperty("patchedHash", patchedHash.toHex())
-            properties.setProperty("patch", "pandaspigot.patch")
+            properties.setProperty("patch", "aerosmith.patch")
             properties.setProperty("sourceUrl", "https://launcher.mojang.com/v1/objects/${vanillaSha1.toHex().lowercase()}/server.jar")
             properties.setProperty("version", "1.8.8")
 

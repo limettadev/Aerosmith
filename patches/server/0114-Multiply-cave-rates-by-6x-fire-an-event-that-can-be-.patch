@@ -1,0 +1,54 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: minotaa <jpichardo369@gmail.com>
+Date: Sun, 1 Jun 2025 09:48:54 -0400
+Subject: [PATCH] Multiply cave rates by 6x, fire an event that can be
+ cancelled to modify it
+
+
+diff --git a/src/main/java/net/minecraft/server/WorldGenCaves.java b/src/main/java/net/minecraft/server/WorldGenCaves.java
+index 2cdd023782bd1783916cb5bd7a1a3dd80ae5ac4f..d382bb2168dbf61199fbacd10264c65d90a04692 100644
+--- a/src/main/java/net/minecraft/server/WorldGenCaves.java
++++ b/src/main/java/net/minecraft/server/WorldGenCaves.java
+@@ -2,6 +2,8 @@ package net.minecraft.server;
+ 
+ import com.google.common.base.Objects;
+ import java.util.Random;
++import dev.limetta.event.CaveCarveEvent;
++import org.bukkit.Bukkit;
+ 
+ public class WorldGenCaves extends WorldGenBase {
+ 
+@@ -156,7 +158,7 @@ public class WorldGenCaves extends WorldGenBase {
+                                                     }
+ 
+                                                     if (flag3 && chunksnapshot.a(j3, j4 - 1, i4).getBlock() == Blocks.DIRT) {
+-                                                        blockposition_mutableblockposition.c(j3 + j * 16, 0, i4 + k * 16);
++                                                        blockposition_mutableblockposition.c(j3, j4 + j * 16, 0, i4 + k * 16);
+                                                         chunksnapshot.a(j3, j4 - 1, i4, this.c.getBiome(blockposition_mutableblockposition).ak.getBlock().getBlockData());
+                                                     }
+                                                 }
+@@ -182,8 +184,23 @@ public class WorldGenCaves extends WorldGenBase {
+     }
+ 
+     protected void a(World world, int i, int j, int k, int l, ChunkSnapshot chunksnapshot) {
+-        int i1 = this.b.nextInt(this.b.nextInt(this.b.nextInt(15) + 1) + 1);
++        // Fire the CaveCarveEvent before generating caves for this chunk
++        org.bukkit.Chunk bukkitChunk = world.getChunkAt(i, j);
++        CaveCarveEvent caveEvent = new CaveCarveEvent(bukkitChunk);
++        Bukkit.getPluginManager().callEvent(caveEvent);
++
++        // If the event is cancelled, skip cave generation for this chunk
++        if (caveEvent.isCancelled()) {
++            return;
++        }
++
++        // Modified to generate 6x more caves
++        // Original: nextInt(nextInt(nextInt(15) + 1) + 1)
++        // New: Multiply the base cave count by 6
++        int baseCaveCount = this.b.nextInt(this.b.nextInt(this.b.nextInt(15) + 1) + 1);
++        int i1 = baseCaveCount * 6; // 6x multiplier
+ 
++        // Keep the original 1/7 chance to skip cave generation entirely
+         if (this.b.nextInt(7) != 0) {
+             i1 = 0;
+         }

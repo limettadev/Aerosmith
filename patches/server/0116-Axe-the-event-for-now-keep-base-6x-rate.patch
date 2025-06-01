@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: minotaa <jpichardo369@gmail.com>
+Date: Sun, 1 Jun 2025 12:21:48 -0400
+Subject: [PATCH] Axe the event for now, keep base 6x rate
+
+
+diff --git a/src/main/java/net/minecraft/server/WorldGenCaves.java b/src/main/java/net/minecraft/server/WorldGenCaves.java
+index d382bb2168dbf61199fbacd10264c65d90a04692..089e6c42e16a65874dd987881558f0ff2a921cb3 100644
+--- a/src/main/java/net/minecraft/server/WorldGenCaves.java
++++ b/src/main/java/net/minecraft/server/WorldGenCaves.java
+@@ -184,16 +184,6 @@ public class WorldGenCaves extends WorldGenBase {
+     }
+ 
+     protected void a(World world, int i, int j, int k, int l, ChunkSnapshot chunksnapshot) {
+-        // Fire the CaveCarveEvent before generating caves for this chunk
+-        org.bukkit.Chunk bukkitChunk = world.getChunkAt(i, j);
+-        CaveCarveEvent caveEvent = new CaveCarveEvent(bukkitChunk);
+-        Bukkit.getPluginManager().callEvent(caveEvent);
+-
+-        // If the event is cancelled, skip cave generation for this chunk
+-        if (caveEvent.isCancelled()) {
+-            return;
+-        }
+-
+         // Modified to generate 6x more caves
+         // Original: nextInt(nextInt(nextInt(15) + 1) + 1)
+         // New: Multiply the base cave count by 6

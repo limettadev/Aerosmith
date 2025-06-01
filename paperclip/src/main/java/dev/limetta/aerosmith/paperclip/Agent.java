@@ -7,7 +7,7 @@
  * MIT License
  */
 
-package com.hpfxd.pandaspigot.paperclip;
+package dev.limetta.aerosmith.paperclip;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.InvocationTargetException;

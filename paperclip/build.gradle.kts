@@ -1,5 +1,5 @@
 plugins {
-    id("pandaspigot.conventions")
+    id("aerosmith.conventions")
     id("paperclip")
     id("com.gradleup.shadow") version "9.0.0-beta7"
 }
@@ -16,9 +16,9 @@ tasks {
     jar {
         archiveClassifier.set("original")
         manifest {
-            val agentClass = "com.hpfxd.pandaspigot.paperclip.Agent"
+            val agentClass = "dev.limetta.aerosmith.paperclip.Agent"
             attributes(
-                "Main-Class" to "com.hpfxd.pandaspigot.paperclip.Paperclip",
+                "Main-Class" to "dev.limetta.aerosmith.paperclip.Paperclip",
                 "Multi-Release" to true,
                 "Launcher-Agent-Class" to agentClass,
                 "Premain-Class" to agentClass,
@@ -27,7 +27,7 @@ tasks {
     }
 
     shadowJar {
-        val prefix = "com.hpfxd.pandaspigot.paperclip.libs"
+        val prefix = "dev.limetta.aerosmith.paperclip.libs"
         arrayOf("org.apache", "org.tukaani", "io.sigpipe").forEach { pack ->
             relocate(pack, "$prefix.$pack")
         }

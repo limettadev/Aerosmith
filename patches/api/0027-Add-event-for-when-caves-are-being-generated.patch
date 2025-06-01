@@ -1,0 +1,51 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: minotaa <jpichardo369@gmail.com>
+Date: Sun, 1 Jun 2025 09:43:02 -0400
+Subject: [PATCH] Add event for when caves are being generated
+
+
+diff --git a/src/main/java/dev/limetta/event/CaveCarveEvent.java b/src/main/java/dev/limetta/event/CaveCarveEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..06e07fed245424a7ba72e26a34c2dbb09f2dc3b9
+--- /dev/null
++++ b/src/main/java/dev/limetta/event/CaveCarveEvent.java
+@@ -0,0 +1,39 @@
++package dev.limetta.event;
++
++import org.bukkit.Chunk;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++
++public class CaveCarveEvent extends Event implements Cancellable {
++    private static final HandlerList handlers = new HandlerList();
++    private final Chunk chunk;
++    private boolean cancelled;
++
++    public CaveCarveEvent(Chunk chunk) {
++        this.chunk = chunk;
++    }
++
++    public Chunk getChunk() {
++        return chunk;
++    }
++
++    @Override
++    public boolean isCancelled() {
++        return cancelled;
++    }
++
++    @Override
++    public void setCancelled(boolean cancel) {
++        this.cancelled = cancel;
++    }
++
++    @Override
++    public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++}

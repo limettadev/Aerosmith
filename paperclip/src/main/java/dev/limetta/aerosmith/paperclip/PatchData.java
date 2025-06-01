@@ -7,7 +7,7 @@
  * MIT License
  */
 
-package com.hpfxd.pandaspigot.paperclip;
+package dev.limetta.aerosmith.paperclip;
 
 import java.io.File;
 import java.io.IOException;

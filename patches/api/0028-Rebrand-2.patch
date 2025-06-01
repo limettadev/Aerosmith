@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: minotaa <jpichardo369@gmail.com>
+Date: Sun, 1 Jun 2025 11:28:54 -0400
+Subject: [PATCH] Rebrand 2
+
+
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 7d85adf0f3b6a51c93670aaaf0ae874920f6057a..01e2a216f11eef4eaca4057783cbc40961ff560b 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -1,5 +1,5 @@
+ plugins {
+-    id("pandaspigot.conventions")
++    id("aerosmith.conventions")
+     `maven-publish`
+ }
+ 
+@@ -75,7 +75,7 @@ publishing {
+             }
+ 
+             pom {
+-                url.set("https://github.com/hpfxd/PandaSpigot")
++                url.set("https://github.com/limettadev/Aerosmith")
+                 description.set(project.description)
+                 name.set(project.name)
+                 // if this is a CI build, set version as the run id
+@@ -90,9 +90,9 @@ publishing {
+                 }
+ 
+                 scm {
+-                    connection.set("scm:git:git://github.com/hpfxd/PandaSpigot.git")
+-                    developerConnection.set("scm:git:git://github.com/hpfxd/PandaSpigot.git")
+-                    url.set("https://github.com/hpfxd/PandaSpigot")
++                    connection.set("scm:git:git://github.com/limettadev/Aerosmith.git")
++                    developerConnection.set("scm:git:git://github.com/limettadev/Aerosmith.git")
++                    url.set("https://github.com/limettadev/Aerosmith")
+                 }
+ 
+                 licenses {
