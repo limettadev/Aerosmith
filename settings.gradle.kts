@@ -1,9 +1,9 @@
-rootProject.name = "pandaspigot"
+rootProject.name = "aerosmith"
 
 includeBuild("build-logic")
 
-this.setupSubproject("pandaspigot-server", "PandaSpigot-Server")
-this.setupSubproject("pandaspigot-api", "PandaSpigot-API")
+this.setupSubproject("aerosmith-server", "Aerosmith-Server")
+this.setupSubproject("aerosmith-api", "Aerosmith-API")
 this.setupSubproject("paperclip", "paperclip")
 
 fun setupSubproject(name: String, dir: String) {

@@ -60,12 +60,12 @@ function savePatches {
     echo "Patches saved for $what to $patch_folder/"
 }
 
-savePatches "$workdir/Paper/PaperSpigot-API" "PandaSpigot-API" "patches/api"
-if [ -f "$basedir/PandaSpigot-API/.git/patch-apply-failed" ]; then
-    echo "$(color 1 31)[[[ WARNING ]]] $(color 1 33)- Not saving PandaSpigot-Server as it appears PandaSpigot-API did not apply clean.$(colorend)"
-    echo "$(color 1 33)If this is a mistake, delete $(color 1 34)PandaSpigot-API/.git/patch-apply-failed$(color 1 33) and run rebuild again.$(colorend)"
-    echo "$(color 1 33)Otherwise, rerun ./panda patch to have a clean PandaSpigot-API apply so the latest PandaSpigot-Server can build.$(colorend)"
+savePatches "$workdir/Paper/PaperSpigot-API" "Aerosmith-API" "patches/api"
+if [ -f "$basedir/Aerosmith-API/.git/patch-apply-failed" ]; then
+    echo "$(color 1 31)[[[ WARNING ]]] $(color 1 33)- Not saving Aerosmith-Server as it appears Aerosmith-API did not apply clean.$(colorend)"
+    echo "$(color 1 33)If this is a mistake, delete $(color 1 34)Aerosmith-API/.git/patch-apply-failed$(color 1 33) and run rebuild again.$(colorend)"
+    echo "$(color 1 33)Otherwise, rerun ./aero patch to have a clean Aerosmith-API apply so the latest Aerosmith-Server can build.$(colorend)"
 else
-    savePatches "$workdir/Paper/PaperSpigot-Server" "PandaSpigot-Server" "patches/server"
+    savePatches "$workdir/Paper/PaperSpigot-Server" "Aerosmith-Server" "patches/server"
 fi
 ) || exit 1
