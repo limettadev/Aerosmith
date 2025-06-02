@@ -24,10 +24,10 @@ jobs:
           git config --global init.defaultBranch master
 
       - name: Setup build environment
-        run: ./panda setup
+        run: ./aero setup
 
       - name: Apply patches
-        run: ./panda patch
+        run: ./aero patch
 
       - name: Build
         uses: burrunan/gradle-cache-action@v3
