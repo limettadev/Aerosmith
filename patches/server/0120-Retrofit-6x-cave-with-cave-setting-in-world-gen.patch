@@ -1,0 +1,258 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: minotaa <jpichardo369@gmail.com>
+Date: Sun, 1 Jun 2025 22:43:36 -0400
+Subject: [PATCH] Retrofit 6x cave with cave setting in world gen.
+
+
+diff --git a/src/main/java/dev/limetta/aerosmith/server/WorldGenSettingsManager.java b/src/main/java/dev/limetta/aerosmith/server/WorldGenSettingsManager.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..222f8b9d149e19d23abb22b537a2c12ebf935099
+--- /dev/null
++++ b/src/main/java/dev/limetta/aerosmith/server/WorldGenSettingsManager.java
+@@ -0,0 +1,37 @@
++package dev.limetta.aerosmith.server;
++
++import net.minecraft.server.NBTTagCompound;
++import dev.limetta.aerosmith.event.api.world.CustomizedGenerationSettings;
++
++public class WorldGenSettingsManager {
++    private final CustomizedGenerationSettings settings;
++
++    public WorldGenSettingsManager() {
++        this(new CustomizedGenerationSettings());
++    }
++
++    public WorldGenSettingsManager(CustomizedGenerationSettings settings) {
++        this.settings = settings;
++    }
++
++    public WorldGenSettingsManager(NBTTagCompound nbtTagCompound) {
++        this.settings = new CustomizedGenerationSettings();
++
++        if (nbtTagCompound.hasKey("CaveFrequency")) {
++            settings.setCaveFrequency(nbtTagCompound.getInt("CaveFrequency"));
++        }
++
++        if (nbtTagCompound.hasKey("CaveMinLengthFactor")) {
++            settings.setCaveLengthMin(nbtTagCompound.getInt("CaveMinLengthFactor"));
++        }
++    }
++
++    public CustomizedGenerationSettings getSettings() {
++        return settings;
++    }
++
++    public void save(NBTTagCompound nbtTagCompound) {
++        nbtTagCompound.setInt("CaveFrequency", settings.getCaveFrequency());
++        nbtTagCompound.setInt("CaveMinLengthFactor", settings.getCaveLengthMin());
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/WorldData.java b/src/main/java/net/minecraft/server/WorldData.java
+index 3a7b22b923fc688e08ce5de6f56ebec94dd14252..6cd750e24d3f25c8fbbd4f26f71d72fc4ab13de4 100644
+--- a/src/main/java/net/minecraft/server/WorldData.java
++++ b/src/main/java/net/minecraft/server/WorldData.java
+@@ -2,6 +2,8 @@ package net.minecraft.server;
+ 
+ import java.util.concurrent.Callable;
+ // CraftBukkit start
++import dev.limetta.aerosmith.event.api.world.CustomizedGenerationSettings;
++import dev.limetta.aerosmith.server.WorldGenSettingsManager;
+ import org.bukkit.Bukkit;
+ import org.bukkit.event.weather.ThunderChangeEvent;
+ import org.bukkit.event.weather.WeatherChangeEvent;
+@@ -47,6 +49,7 @@ public class WorldData {
+     private int J;
+     private GameRules K;
+     public WorldServer world; // CraftBukkit
++    private WorldGenSettingsManager customSettings; // Aerosmith
+ 
+     protected WorldData() {
+         this.c = WorldType.NORMAL;
+@@ -61,6 +64,7 @@ public class WorldData {
+         this.I = 5;
+         this.J = 15;
+         this.K = new GameRules();
++        this.customSettings = new WorldGenSettingsManager();
+     }
+ 
+     public WorldData(NBTTagCompound nbttagcompound) {
+@@ -189,7 +193,7 @@ public class WorldData {
+         if (nbttagcompound.hasKeyOfType("BorderWarningTime", 99)) {
+             this.J = nbttagcompound.getInt("BorderWarningTime");
+         }
+-
++        customSettings = new WorldGenSettingsManager(nbttagcompound);
+     }
+ 
+     public WorldData(WorldSettings worldsettings, String s) {
+@@ -219,6 +223,7 @@ public class WorldData {
+         this.c = worldsettings.h();
+         this.d = worldsettings.j();
+         this.x = worldsettings.i();
++        this.customSettings = worldsettings.getCustomGenSettings();
+     }
+ 
+     public WorldData(WorldData worlddata) {
+@@ -269,6 +274,7 @@ public class WorldData {
+         this.H = worlddata.H;
+         this.J = worlddata.J;
+         this.I = worlddata.I;
++        this.customSettings = worlddata.customSettings;
+     }
+ 
+     public NBTTagCompound a() {
+@@ -327,13 +333,21 @@ public class WorldData {
+         if (nbttagcompound1 != null) {
+             nbttagcompound.set("Player", nbttagcompound1);
+         }
+-
++        customSettings.save(nbttagcompound);
+     }
+ 
+     public long getSeed() {
+         return this.b;
+     }
+ 
++    public CustomizedGenerationSettings getCustomSettings() {
++        if (customSettings == null) {
++            customSettings = new WorldGenSettingsManager();
++        }
++
++        return customSettings.getSettings();
++    }
++
+     public int c() {
+         return this.e;
+     }
+diff --git a/src/main/java/net/minecraft/server/WorldGenCaves.java b/src/main/java/net/minecraft/server/WorldGenCaves.java
+index e96f806a40f20b3fc49059818fd793b14507e5d0..ce1b40d5db7ff7504c9ed7ba2bbc59e56eba6f9a 100644
+--- a/src/main/java/net/minecraft/server/WorldGenCaves.java
++++ b/src/main/java/net/minecraft/server/WorldGenCaves.java
+@@ -2,18 +2,16 @@ package net.minecraft.server;
+ 
+ import com.google.common.base.Objects;
+ import java.util.Random;
+-import dev.limetta.event.CaveCarveEvent;
+-import org.bukkit.Bukkit;
+ 
+ public class WorldGenCaves extends WorldGenBase {
+ 
+     public WorldGenCaves() {}
+ 
+-    protected void a(long i, int j, int k, ChunkSnapshot chunksnapshot, double d0, double d1, double d2) {
+-        this.a(i, j, k, chunksnapshot, d0, d1, d2, 1.0F + this.b.nextFloat() * 6.0F, 0.0F, 0.0F, -1, -1, 0.5D);
++    protected void a(long i, int j, int k, ChunkSnapshot chunksnapshot, double d0, double d1, double d2, int lengthFactor) {
++        this.a(i, j, k, chunksnapshot, d0, d1, d2, 1.0F + this.b.nextFloat() * 6.0F, 0.0F, 0.0F, -1, -1, 0.5D, lengthFactor);
+     }
+ 
+-    protected void a(long i, int j, int k, ChunkSnapshot chunksnapshot, double d0, double d1, double d2, float f, float f1, float f2, int l, int i1, double d3) {
++    protected void a(long i, int j, int k, ChunkSnapshot chunksnapshot, double d0, double d1, double d2, float f, float f1, float f2, int l, int i1, double d3, int lengthFactor) {
+         double d4 = (double) (j * 16 + 8);
+         double d5 = (double) (k * 16 + 8);
+         float f3 = 0.0F;
+@@ -23,7 +21,7 @@ public class WorldGenCaves extends WorldGenBase {
+         if (i1 <= 0) {
+             int j1 = this.a * 16 - 16;
+ 
+-            i1 = j1 - random.nextInt(j1 / 4);
++            i1 = j1 - random.nextInt(j1 / lengthFactor);
+         }
+ 
+         boolean flag = false;
+@@ -57,8 +55,8 @@ public class WorldGenCaves extends WorldGenBase {
+             f4 += (random.nextFloat() - random.nextFloat()) * random.nextFloat() * 2.0F;
+             f3 += (random.nextFloat() - random.nextFloat()) * random.nextFloat() * 4.0F;
+             if (!flag && l == k1 && f > 1.0F && i1 > 0) {
+-                this.a(random.nextLong(), j, k, chunksnapshot, d0, d1, d2, random.nextFloat() * 0.5F + 0.5F, f1 - 1.5707964F, f2 / 3.0F, l, i1, 1.0D);
+-                this.a(random.nextLong(), j, k, chunksnapshot, d0, d1, d2, random.nextFloat() * 0.5F + 0.5F, f1 + 1.5707964F, f2 / 3.0F, l, i1, 1.0D);
++                this.a(random.nextLong(), j, k, chunksnapshot, d0, d1, d2, random.nextFloat() * 0.5F + 0.5F, f1 - 1.5707964F, f2 / 3.0F, l, i1, 1.0D, lengthFactor); // Aerosmith
++                this.a(random.nextLong(), j, k, chunksnapshot, d0, d1, d2, random.nextFloat() * 0.5F + 0.5F, f1 + 1.5707964F, f2 / 3.0F, l, i1, 1.0D, lengthFactor); // Aerosmith
+                 return;
+             }
+ 
+@@ -188,10 +186,10 @@ public class WorldGenCaves extends WorldGenBase {
+         // Original: nextInt(nextInt(nextInt(15) + 1) + 1)
+         // New: Multiply the base cave count by 6
+         int baseCaveCount = this.b.nextInt(this.b.nextInt(this.b.nextInt(15) + 1) + 1);
+-        int i1 = baseCaveCount * 6; // 6x multiplier
++        int i1 = baseCaveCount; // 6x multiplier
+ 
+         // Keep the original 1/7 chance to skip cave generation entirely
+-        if (this.b.nextInt(7) != 0) {
++        if (this.b.nextInt(world.getWorldData().getCustomSettings().getCaveFrequency()) != 0) {
+             i1 = 0;
+         }
+ 
+@@ -202,20 +200,20 @@ public class WorldGenCaves extends WorldGenBase {
+             int k1 = 1;
+ 
+             if (this.b.nextInt(4) == 0) {
+-                this.a(this.b.nextLong(), k, l, chunksnapshot, d0, d1, d2);
++                this.a(this.b.nextLong(), k, l, chunksnapshot, d0, d1, d2, world.getWorldData().getCustomSettings().getCaveLengthMin());
+                 k1 += this.b.nextInt(4);
+             }
+ 
+             for (int l1 = 0; l1 < k1; ++l1) {
+                 float f = this.b.nextFloat() * 3.1415927F * 2.0F;
+                 float f1 = (this.b.nextFloat() - 0.5F) * 2.0F / 8.0F;
+-                float f2 = this.b.nextFloat() * 2.0F + this.b.nextFloat();
++                float f2 = world.getWorldData().getCustomSettings().getCaveSize(this.b);
+ 
+                 if (this.b.nextInt(10) == 0) {
+-                    f2 *= this.b.nextFloat() * this.b.nextFloat() * 3.0F + 1.0F;
++                    f2 *= world.getWorldData().getCustomSettings().getLargeCaveSize(this.b);
+                 }
+ 
+-                this.a(this.b.nextLong(), k, l, chunksnapshot, d0, d1, d2, f2, f, f1, 0, 0, 1.0D);
++                this.a(this.b.nextLong(), k, l, chunksnapshot, d0, d1, d2, f2, f, f1, 0, 0, 1.0D, world.getWorldData().getCustomSettings().getCaveLengthMin());
+             }
+         }
+ 
+diff --git a/src/main/java/net/minecraft/server/WorldSettings.java b/src/main/java/net/minecraft/server/WorldSettings.java
+index 122780a70b671f1761e2db6deeb37a954d6d53dd..838f830df1cb79c2a36dbf548def7f7f1d8e9156 100644
+--- a/src/main/java/net/minecraft/server/WorldSettings.java
++++ b/src/main/java/net/minecraft/server/WorldSettings.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.server;
+ 
++import dev.limetta.aerosmith.server.WorldGenSettingsManager;
++
+ public final class WorldSettings {
+ 
+     private final long a;
+@@ -10,6 +12,15 @@ public final class WorldSettings {
+     private boolean f;
+     private boolean g;
+     private String h;
++    private WorldGenSettingsManager customGenSettings = new WorldGenSettingsManager();
++
++    public void setCustomGenSettings(WorldGenSettingsManager settings) {
++        this.customGenSettings = settings;
++    }
++
++    public WorldGenSettingsManager getCustomGenSettings() {
++        return customGenSettings;
++    }
+ 
+     public WorldSettings(long i, WorldSettings.EnumGamemode worldsettings_enumgamemode, boolean flag, boolean flag1, WorldType worldtype) {
+         this.h = "";
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index f069bb9903b7ab699b47d7a28cfd988c30778f78..4592ebb09db44e2d18e7cca16c76c4081dd39bdc 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
+ 
+ import javax.imageio.ImageIO;
+ 
++import dev.limetta.aerosmith.server.WorldGenSettingsManager;
+ import net.minecraft.server.*;
+ 
+ import org.bukkit.BanList;
+@@ -946,6 +947,7 @@ public final class CraftServer implements Server {
+         if (worlddata == null) {
+             WorldSettings worldSettings = new WorldSettings(creator.seed(), WorldSettings.EnumGamemode.getById(getDefaultGameMode().getValue()), generateStructures, hardcore, type);
+             worldSettings.setGeneratorSettings(creator.generatorSettings());
++            worldSettings.setCustomGenSettings(new WorldGenSettingsManager(creator.getCustomGenSettings())); // Aerosmith
+             worlddata = new WorldData(worldSettings, name);
+         }
+         worlddata.checkName(name); // CraftBukkit - Migration did not rewrite the level.dat; This forces 1.8 to take the last loaded world as respawn (in this case the end)
