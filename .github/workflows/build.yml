@@ -40,7 +40,7 @@ jobs:
 
       - name: Copy Paperclip jar
         run: |
-          cp -v "./paperclip/build/libs/paperclip-1.8.8-R0.1-SNAPSHOT.jar" "./aerosmith-$GITHUB_RUN_NUMBER.jar"
+          cp -v "./paperclip/build/libs/paperclip-1.8.8-R0.1-SNAPSHOT.jar" "./aerosmith-${GITHUB_RUN_NUMBER}.jar"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -48,3 +48,20 @@ jobs:
           name: Server JAR
           path: aerosmith-${{ github.run_number }}.jar
           if-no-files-found: error
+
+      # ↓↓↓ AUTO-PUBLISH SERVER JAR TO GAMESERVER ROOT ↓↓↓
+      - name: Clone target repo
+        run: |
+          echo "Cloning target repo..."
+          git clone https://limettadev:${{ secrets.TOKEN }}@github.com/limettadev/uhc-gameserver.git target-repo
+
+      - name: Copy built jar and commit
+        run: |
+          echo "Copying built jar to root as server.jar..."
+          cp "aerosmith-${GITHUB_RUN_NUMBER}.jar" target-repo/server.jar
+          cd target-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add server.jar
+          git commit -m "Update server.jar from build ${{ github.run_number }}" || echo "No changes to commit"
+          git push
